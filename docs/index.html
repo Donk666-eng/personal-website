@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人主页 & 内容管理后台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 动态星空 Canvas 背景 -->
+  <canvas id="starfield"></canvas>
+
+  <!-- 顶部吸顶导航栏 -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo" id="nav-logo">Donk.Dev</a>
+      <nav class="nav-links">
+        <a href="#about" onclick="switchView('front')">关于我</a>
+        <a href="#skills" onclick="switchView('front')">技能</a>
+        <a href="#projects" onclick="switchView('front')">项目</a>
+        <a href="#blog" onclick="switchView('front')">博客</a>
+        <button class="btn-admin" onclick="switchView('admin')">⚙️ 后台管理</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= 前台展示视图 ================= -->
+  <main id="front-view" class="container">
+    <!-- Hero 首屏 -->
+    <section class="hero" id="about">
+      <div class="avatar">👨‍💻</div>
+      <h1 id="hero-name">加载中...</h1>
+      <p class="role" id="hero-role"></p>
+      <p class="bio" id="hero-bio"></p>
+      <div class="hero-actions">
+        <a href="#projects" class="btn primary">查看项目</a>
+        <button class="btn outline" onclick="copyEmail()">📋 复制邮箱：<span id="hero-email"></span></button>
+      </div>
+    </section>
+
+    <!-- 技能展示 -->
+    <section id="skills" class="section">
+      <h2 class="section-title">🛠️ 技能掌握</h2>
+      <div id="skills-list" class="grid-2"></div>
+    </section>
+
+    <!-- 项目展示 -->
+    <section id="projects" class="section">
+      <h2 class="section-title">🚀 精选项目</h2>
+      <div id="projects-list" class="grid-3"></div>
+    </section>
+
+    <!-- 博客文章 -->
+    <section id="blog" class="section">
+      <h2 class="section-title">📝 最新博客</h2>
+      <div id="posts-list" class="grid-2"></div>
+    </section>
+  </main>
+
+  <!-- ================= 后台管理视图 (/admin) ================= -->
+  <section id="admin-view" class="container hidden">
+    <!-- 登录面板 -->
+    <div id="login-panel" class="card login-card">
+      <h2>🔒 管理员登录</h2>
+      <p class="muted">默认演示密码：<code>admin123</code></p>
+      <input type="password" id="admin-pwd" placeholder="请输入管理员密码" class="input">
+      <button class="btn primary full" onclick="handleLogin()">登录后台</button>
+    </div>
+
+    <!-- 后台主控面板 -->
+    <div id="dashboard-panel" class="hidden">
+      <div class="admin-header">
+        <h2>📊 站点后台管理系统</h2>
+        <div>
+          <button class="btn outline" onclick="resetDefaultData()">恢复初始数据</button>
+          <button class="btn danger" onclick="handleLogout()">退出登录</button>
+        </div>
+      </div>
+
+      <!-- 统计概览 -->
+      <div class="grid-3 stats-grid">
+        <div class="card stat-card"><span>技能总数</span><strong id="stat-skills">0</strong></div>
+        <div class="card stat-card"><span>项目总数</span><strong id="stat-projects">0</strong></div>
+        <div class="card stat-card"><span>博客文章</span><strong id="stat-posts">0</strong></div>
+      </div>
+
+      <!-- 1. 个人信息修改 -->
+      <div class="card admin-section">
+        <h3>👤 编辑个人信息（保存后前台立即生效）</h3>
+        <div class="form-grid">
+          <div>
+            <label>姓名 / 昵称</label>
+            <input type="text" id="edit-name" class="input">
+          </div>
+          <div>
+            <label>职位 / 头衔</label>
+            <input type="text" id="edit-role" class="input">
+          </div>
+          <div>
+            <label>联系邮箱</label>
+            <input type="email" id="edit-email" class="input">
+          </div>
+          <div class="full-width">
+            <label>个人简介</label>
+            <textarea id="edit-bio" rows="3" class="input"></textarea>
+          </div>
+        </div>
+        <button class="btn primary" onclick="saveProfile()">💾 保存个人信息</button>
+      </div>
+
+      <!-- 2. 技能管理 -->
+      <div class="card admin-section">
+        <h3>🛠️ 技能管理</h3>
+        <div class="inline-form">
+          <input type="text" id="new-skill-name" placeholder="技能名称 (如 React / Linux)" class="input">
+          <input type="number" id="new-skill-level" placeholder="熟练度 1-100" min="1" max="100" class="input">
+          <button class="btn primary" onclick="addSkill()">+ 添加技能</button>
+        </div>
+        <div id="admin-skills-list" class="admin-list"></div>
+      </div>
+
+      <!-- 3. 项目管理 -->
+      <div class="card admin-section">
+        <h3>🚀 项目管理</h3>
+        <div class="inline-form">
+          <input type="text" id="new-proj-title" placeholder="项目名称" class="input">
+          <input type="text" id="new-proj-tag" placeholder="技术标签 (如 Vue / Chrome)" class="input">
+          <input type="text" id="new-proj-desc" placeholder="项目简短描述" class="input">
+          <button class="btn primary" onclick="addProject()">+ 发布项目</button>
+        </div>
+        <div id="admin-projects-list" class="admin-list"></div>
+      </div>
+
+      <!-- 4. 博客管理 -->
+      <div class="card admin-section">
+        <h3>📝 博客文章管理</h3>
+        <div class="form-grid">
+          <input type="text" id="new-post-title" placeholder="文章标题" class="input full-width">
+          <textarea id="new-post-summary" rows="3" placeholder="文章摘要或 Markdown 内容..." class="input full-width"></textarea>
+        </div>
+        <button class="btn primary" onclick="addPost()">+ 发布文章</button>
+        <div id="admin-posts-list" class="admin-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2026 Personal Portfolio. Powered by GitHub Pages.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
